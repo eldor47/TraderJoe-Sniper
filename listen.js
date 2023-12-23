@@ -107,11 +107,11 @@ const createEmbed = (channel, content) => {
     .setDescription(`Token - ${content.tokenName} - Symbol - $${content.tokenSymbol}`)
     .addFields(
       { name: 'Contract Verification', value: content.isVerified ? 'Verified ✅' : 'Not Verified ❌' },
+      { name: `Charts`, value: `[Dexscreener Chart 📉](${content.dexScreenerURL})`},
       { name: 'Contract Creation Date 📅', value: `<t:${content.creationTimestamp}>` },
       { name: 'Contract Address', value: content.contractAddress, inline: true },
       { name: 'Method', value: 'Liquidity Added', inline: true },
     )
-    .addField(`DexScreener`, `DexScreener Link 📉[Click here](${content.dexScreenerURL})`)
     .setTimestamp()
     .setFooter({ text: '**Ape with risk 🙈', iconURL: 'https://cdn.routescan.io/_next/image?url=https%3A%2F%2Fcms-cdn.avascan.com%2Fcms2%2Favax-icon.de4ce0ba59ea.png&w=32&q=25' });
 
