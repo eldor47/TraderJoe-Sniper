@@ -1,38 +1,56 @@
 const { ethers } = require('ethers');
 const keccak256 = require('keccak256')
 
-console.log(keccak256('0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7' + '0x420FcA0121DC28039145009570975747295f2329').toString('hex'))
+const erc20ABI = require('./abis/erc20.json')
+const routerABI = require('./abis/router.json')
+const swapABI = require('./abis/swap.json')
 
 const avaxRPCJSON = 'https://api.avax.network/ext/bc/C/rpc'
 const providerJSON = new ethers.providers.JsonRpcProvider(avaxRPCJSON);
 
-const getContractCreationTimestamp = async(contractAddress) => {
-  var res = await fetch('https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api?module=contract&action=getcontractcreation&contractaddresses=' + contractAddress)
+
+async function getCostWAVAX(address) {
+
+  const traderJoeContract = '0x60aE616a2155Ee3d9A68541Ba4544862310933d4'
+
+  const contract = new ethers.Contract(traderJoeContract, swapABI, providerJSON);
+  const oneAVAX = '1000000000000000000'
+  const WAVAX = '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7'
+  const COQ = address
+
+  const cost = await contract.getAmountsOut(oneAVAX, [WAVAX, COQ])
+  var strCost = cost[1].toString()
+  strCost = strCost.substring(0, strCost.length - 18)
+
+  return strCost
+}
+
+
+const getGas = async() => {
+  var res = await providerJSON.getGasPrice()
+  return Math.round(ethers.utils.formatUnits(res, "gwei"))
+}
+
+
+const checkUnsellable = async(contractAddress) => {
+  var res = await fetch('https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api?module=contract&action=getsourcecode&address=' + contractAddress)
   res = await res.json()
 
-  if(res.status === '1') {
-    // get tx
-    const transaction = await providerJSON.getTransaction(res.result[0].txHash)
-    const block = await providerJSON.getBlock(transaction.blockNumber)
-    
-    return block.timestamp
-  }
-  return -1
-}
-
-const getDexScreenerPair = async (contractAddress) => {
   try {
-    var res = await fetch("https://api.dexscreener.com/latest/dex/search/?q=" + contractAddress)
-    res = await res.json()
-  
-    return res.pairs.filter(a => a.dexId === 'traderjoe')[0].url
+    if(res.result[0].SourceCode.includes('kiuiixa')) {
+      return 'Unsellable Hack ❌'
+    } else {
+      return 'Seems promising 🤞'
+    }
   } catch(e) {
-    console.log(e)
-    return ''
+    return 'Unknown ❌'
   }
 }
 
-getDexScreenerPair('0x420FcA0121DC28039145009570975747295f2329')
+
+getVerification('0x0BB885e49dE1b55c73BCA037b4Ff05B6955dD789').then(data => {
+  console.log(data)
+})
 // getVerification('0x819913aac5a9407a94806f14a0dbe4fbb3ee732e').then(data => {
 //   console.log(data)
 // })
